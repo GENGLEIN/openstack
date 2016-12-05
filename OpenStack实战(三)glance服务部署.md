@@ -1,33 +1,49 @@
 # 一 glance官方简介
 ---
+OpenStack镜像服务是IaaS的核心服务，如同 :ref:`get_started_conceptual_architecture`所示。它接受磁盘镜像或服务器镜像API请求，和来自终端用户或OpenStack计算组件的元数据定义。它也支持包括OpenStack对象存储在内的多种类型仓库上的磁盘镜像或服务器镜像存储。
+大量周期性进程运行于OpenStack镜像服务上以支持缓存。同步复制（Replication）服务保证集群中的一致性和可用性。其它周期性进程包括auditors, updaters, 和 reapers。
+OpenStack镜像服务包括以下组件：
+
+glance-api
+接收镜像API的调用，诸如镜像发现、恢复、存储。
+
+glance-registry
+存储、处理和恢复镜像的元数据，元数据包括项诸如大小和类型。
 
 
+数据库
+存放镜像元数据，用户是可以依据个人喜好选择数据库的，多数的部署使用MySQL或SQLite。
 
+镜像文件的存储仓库
+支持多种类型的仓库，它们有普通文件系统、对象存储、RADOS块设备、HTTP、以及亚马逊S3。记住，其中一些仓库仅支持只读方式使用。
+元数据定义服务
+通用的API，是用于为厂商，管理员，服务，以及用户自定义元数据。这种元数据可用于不同的资源，例如镜像，工件，卷，配额以及集合。一个定义包括了新属性的键，描述，约束以及可以与之关联的资源的类型。
 
 # 二 安装glance先决条件 
 ---
-
-
-
-
+ 安装和配置镜像服务之前，你必须创建创建一个数据库、服务凭证和API端点。
+<pre>
+用数据库连接客户端以 root 用户连接到数据库服务器：
+# mysql -u root -p
+# create database glance;
+# grant all on glance.* to 'glance'@'localhost' identified by 'glance';
+# grant all on glance.* to 'glance'@'%' identified by 'glance';
+</pre>
 # 三 glance部署安装 
 ---
 ### 3.1 安装软件包:
 <pre>
 yum install openstack-glance
 </pre>
-
 ### 3.2 编辑文件/etc/glance/glance-api.conf并完成如下：
 > 在[database]部分，配置数据库访问
 <pre>
 641 connection = mysql+pymysql://glance:glance@192.168.56.11/glance
 </pre>
-
 ### 3.3 编辑文件/etc/glance/glance-registry.conf并完成如下：
 <pre>
 382 connection = mysql+pymysql://glance:glance@192.168.56.11/glance
 </pre>
-
 ### 3.4 同步数据库
 <pre>
 # su -s /bin/sh -c "glance-manage db_sync" glance
